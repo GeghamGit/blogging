@@ -44,7 +44,7 @@ exports.createUser = (req, res, next) => {
 };
 
 
-const jwtKey = 'sjwtt#1';
+const jwtKey = 'GH#1sJWTt94%#1';
 const jwtExpirySeconds = 300;
 
 exports.loginUser = (req, res, next) => {
