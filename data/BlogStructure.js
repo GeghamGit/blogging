@@ -5,11 +5,11 @@ class BlogStructure {
   };
 
   getBlog = () => {
-   return this._transformRental(this.data)
+   return this._transformBlog(this.data)
   };
   
   getBlogs = () => {
-    return this._transformRental(this.data, true)
+    return this._transformBlog(this.data, true)
   };
 
   _blogDataStructure = (blog) => {

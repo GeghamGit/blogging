@@ -3,20 +3,24 @@ const saveFile = require('../lib/saveFile');
 const BlogStructure = require('../data/BlogStructure');
 const nodemailer = require('nodemailer');
 const conf = require ('../config');
+const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
 
 exports.getAllBlogs = (req, res, next) => {
-  res.json({
-    data: {
-      getAllBlogs: true
+  Blog.find({}, (err, allBlogs) => {
+    if(err){
+      return res.json({message: err.message});
     }
-  })
+    return res.json(allBlogs)
+  });
 };
 
 exports.getBlogById = (req, res, next) => {
-  res.json({
-    data: {
-      getBlogById: true
+
+  Blog.findOne({ id: req.params.id}, (err, blog) => {
+    if(err){
+      return res.json({message: err.message});
     }
+    return res.json({message: "Finded blog", data: blog })
   })
 };
 
@@ -59,11 +63,13 @@ exports.updateBlog = (req, res, next) => {
   })
 };
 
+
 exports.deleteBlog = (req, res, next) => {
-  res.json({
-    data: {
-      updateById: true
+  Blog.deleteOne({ id: req.params.id}, (err, blog) => {
+    if(err){
+      return res.json({message: err.message});
     }
+    return res.json({message: "Blog is deleted", data: blog })
   })
 };
 
@@ -71,18 +77,17 @@ exports.deleteBlog = (req, res, next) => {
 const  transporter = nodemailer.createTransport(conf.smtpServer)
 
 exports.sendEmail = async (req, res, next) => {
-  const { email } = req.body;
+  const { name,email } = req.body;
   try {
     await transporter.sendEmail({
       from:conf.smtpServer.from,
       to: email,
       subject: 'Confirm Email',
-      html: `<h1>Email verify</h1>`
+      html: verifyEmailTemplate(name)
     });
 
     transporter.close();
   } catch (err) {
     return next(err);
   }
-
 }
