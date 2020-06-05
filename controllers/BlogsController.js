@@ -1,9 +1,6 @@
 const Blog = require('../schema/Blog');
 const saveFile = require('../lib/saveFile');
 const BlogStructure = require('../data/BlogStructure');
-const nodemailer = require('nodemailer');
-const conf = require ('../config');
-const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
 
 exports.getAllBlogs = (req, res, next) => {
   Blog.find({}, (err, allBlogs) => {
@@ -72,22 +69,3 @@ exports.deleteBlog = (req, res, next) => {
     return res.json({message: "Blog is deleted", data: blog })
   })
 };
-
-
-const  transporter = nodemailer.createTransport(conf.smtpServer)
-
-exports.sendEmail = async (req, res, next) => {
-  const { name,email } = req.body;
-  try {
-    await transporter.sendEmail({
-      from:conf.smtpServer.from,
-      to: email,
-      subject: 'Confirm Email',
-      html: verifyEmailTemplate(name)
-    });
-
-    transporter.close();
-  } catch (err) {
-    return next(err);
-  }
-}

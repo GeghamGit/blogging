@@ -52,39 +52,9 @@ router.get('/:id', blogsController.getBlogById);
 
 /**
  * @swagger
- * /blogs/send-email:
+ * /blogs/:
  *  post:
- *    summary: Send test email
- *    tags:
- *      - Blogs
- *    parameters:
- *      - name: body
- *        in: body
- *        required: true
- *        schema:
- *          type: object
- *          required:
- *            - email
- *          properties:
- *            email:
- *          example: {
- *            "email": "test@email.ru",
- *          }
- *    responses:
- *      200:
- *        description: Success response
- *      404:
- *        description: Not found
- *      500:
- *        description: Server error
- */
-router.post('/send-email', blogsController.sendEmail);
-
-/**
- * @swagger
- * /blogs:
- *  post:
- *    summary: Create new rental
+ *    summary: Create new blog
  *    description:
  *      "Ստեղծում ենք նոր բլոգ"
  *    tags:
@@ -125,7 +95,7 @@ router.post('/', blogsController.createBlog);
  * @swagger
  * /blogs/{id}:
  *  put:
- *    summary: Update rental
+ *    summary: Update glog
  *    description:
  *      "Փոփոխում ենք բլոգը"
  *    tags:
@@ -166,7 +136,7 @@ router.put('/:id', blogsController.updateBlog);
  * @swagger
  * /blogs/{id}:
  *  delete:
- *    summary: Delete rental
+ *    summary: Delete blog
  *    description:
  *      "Հեռացնում ենք նշված բլոգը"
  *    tags:

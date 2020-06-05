@@ -1,4 +1,4 @@
-module.export = (name) => {
+exports.template = (name) => {
 	return (`
 		<!DOCTYPE html>
 		<html>

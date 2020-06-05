@@ -26,7 +26,6 @@ exports.signIn = (req, res, next) => {
 }
 
 exports.welcome = (req, res, next) => {
-
 	const token = req.cookies.token
 
 	if (!token) {
