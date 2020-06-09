@@ -9,10 +9,10 @@ passport.use(new JWTStrategy({
 }, (email, password, done) => {
   User.findOne({ email, password })
     .then((user) => {
-      if(!user || !user.validatePassword(password)) {
+      if(!user) {
         return done(null, false, {message: 'Incorrect email or password.'});
       }
 
       return done(null, user, {message: 'Logged In Successfully'});
-    }).catch(done);
+    }).catch(done({message: 'User not fined'}));
 }));
