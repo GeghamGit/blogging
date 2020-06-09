@@ -4,7 +4,7 @@ const JWTStrategy = require('passport-jwt').Strategy;
 const User = require('../schema/User');
 
 passport.use(new JWTStrategy({
-    jwtFromRequest: JWTStrategy.ExtractJwt,
+    jwtFromRequest: JWTStrategy.ExtractJwt.fromAuthHeaderAsBearerToken(),
     jwtKey: 'GH#1sJWTt94%#1',
 }, (email, password, done) => {
   User.findOne({ email, password })
