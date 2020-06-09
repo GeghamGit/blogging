@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const passport = require('./passport');
 
 const jwtKey = 'GH#1sJWTt94%#1';
 const jwtExpirySeconds = 300;
@@ -6,9 +7,9 @@ const jwtExpirySeconds = 300;
 exports.signIn = (req, res, next) => {
 	return new Promise((resolve, reject) => {
 		try{
-      const { email, password } = req.body;
+      passport.authenticate('jwt', {session: false}, (err, user, info))
 
-      if (!email || !password) {
+      if (err || !user) {
         return reject({message: "Status code` 401"});
       }
       User.findOne({email: req.body.email, password: req.body.password}, (error, user) => {

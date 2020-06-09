@@ -60,7 +60,7 @@ exports.createUser = async (req, res, next) => {
 };
 
 exports.loginUser = (req, res, next) => {
-  login.signIn;
+  login.signIn(req, res, next);
 };
 
 
