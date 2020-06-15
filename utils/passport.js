@@ -1,18 +1,22 @@
 const passport = require('passport');
-const JWTStrategy = require('passport-jwt').Strategy;
+const LocalStrategy = require('passport-local');
 
 const User = require('../schema/User');
 
-passport.use(new JWTStrategy({
-    jwtFromRequest: JWTStrategy.ExtractJwt.fromAuthHeaderAsBearerToken(),
-    jwtKey: 'GH#1sJWTt94%#1',
+passport.use(new LocalStrategy({
+    usernameField: 'user[email]',
+    passwordField: 'user[password]',
 }, (email, password, done) => {
-  User.findOne({ email, password })
-    .then((user) => {
-      if(!user) {
-        return done(null, false, {message: 'Incorrect email or password.'});
-      }
-
-      return done(null, user, {message: 'Logged In Successfully'});
-    }).catch(done({message: 'User not fined'}));
+  return new Promise((resolve, reject) => {
+    try{
+      User.findOne({ email }, (err, user) => {
+        if(!user || !user.checkPassword(password)) {
+          return reject(done(null, false, { errors: { 'email or password': 'is invalid' } }));
+        }
+        return resolve(done(null, user, {message: 'Logged In Successfully'}));
+      });
+    } catch(error){
+      return reject(error)
+    }
+  });
 }));

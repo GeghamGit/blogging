@@ -1,91 +1,143 @@
 const User = require('../schema/User');
-const login = require('../utils/secureJwt');
+const passport = require('passport');
 const valid = require('../validate/validate');
 const nodemailer = require('nodemailer');
 const conf = require ('../config');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
+const saveFile = require('../lib/saveFile');
 
 exports.getUsers = (req, res, next) => {
-  User.find({}, (err, allUsers) => {
-    if(err){
-      res.json({message: err.message});
+  return new Promise((resolve, reject) => {
+    try{
+      User.find({}, (err, allUsers) => {
+        if(err){
+          return reject({message: err.message});
+        }
+        return resolve(allUsers);
+      });
+    }catch(error){
+      return reject(error);
     }
-    return res.json(allUsers)
   });
 };
 
 exports.getUserById = (req, res, next) => {
-  User.findOne({ id: req.params.id}, (err, user) => {
-    if(err){
-      res.json({message: err.message});
+  return new Promise((resolve, reject) => {
+    try{
+      User.find({ _id: req.params.id}, (err, user) => {
+        if(err){
+          return reject({message: err.message});
+        }
+        if(user){
+          return resolve({message: "Finded user", data: user })
+        }
+        return resolve("You are have not account, go to registrate if you want` ");
+      });
+    }catch(error){
+      return reject(error);
     }
-    if(user){
-      return res.json({message: "Finded user", data: user })
-    }
-    return console.log("You are have not account, go to registrate if you want` " )
-  })
+  });
 };
 
 exports.createUser = async (req, res, next) => {
+  return new Promise(async(resolve, reject) => {
+    try{
+      const checked = await valid.checkUserInfo(req, res, next);
   
-  const checked = await valid.checkUserInfo(req, res, next);
-  
-  if(!checked){
-    return res.json({message: "Incorrect fields"})
-  } else {
+      if(!checked.status){
+        return reject({message: "Incorrect fields"})
+      } else {
+    
+        const { firstName, surname, lastName, nickName, address, email, image, password } = req.body;
+        const imgConfPath = 'user';
+        const imageName = await saveFile(image, imgConfPath);
 
-    const { firstName, surname, lastName, nickName, address, email, password } = req.body;
-    const user = new User({
-      firstName,
-      surname,
-      lastName,
-      nickName,
-      address,
-      email,
-      password
-    });
-
-  user.save(async(err, savedUser) => {
-    if (err) {
-      return res.json({message: err.message});
-    } else {
-
-      await user.findOne({'emailVerify.hash': req.params.hash});
-      user.emailVerify.verify = true;
-      user.save();
-      return res.json({message: 'email is verifyed', data: savedUser});
+        const user = new User({
+          firstName,
+          surname,
+          lastName,
+          nickName,
+          address,
+          email,
+          password,
+          image: { link: imageName }
+        });
+    
+        user.save(async(err, savedUser) => {
+          if (err) {
+            return reject({message: err.message});
+          }
+          await user.findOne({'emailVerify.hash': req.params.hash});
+          user.emailVerify.verify = true;
+          return resolve({message: 'email is verifyed', data: savedUser});
+        });
+      }
+    }catch(error){
+      return reject(error);
     }
   });
-  }
 };
 
 exports.loginUser = (req, res, next) => {
-  login.signIn(req, res, next);
+  return new Promise((resolve, reject) => {
+    try{
+      const user = {email: req.body.email, password: req.body.password};
+    
+      if(!user.email) {
+        return reject({message: "email is required"});
+      }
+    
+      if(!user.password) {
+        return reject({message: "password is required"});
+      }
+    
+      return passport.authenticate('local', { session: false }, (err, passportUser) => {
+        if(err) {
+          return reject(next(err));
+        }
+    
+        if(passportUser) {
+          console.log(passportUser)
+          const user = passportUser;
+          user.token = passportUser.generateJWT();
+    
+          return resolve({ user: user.toAuthJSON() });
+        }
+    
+        return reject(status(400));
+      });
+    } catch(error){
+      return reject(error)
+    }
+  });
 };
 
 
 const  transporter = nodemailer.createTransport(conf.smtpServer);
 
-exports.sendEmail = async (req, res, next) => {
-  const { name, email } = req.body;
+exports.sendEmail = (req, res, next) => {
+  return new Promise(async(resolve, reject) => {
+    try{
+      const { name, email } = req.body;
 
-  const mailOptions = {
-    from: conf.smtpServer.from,
-    to: email,
-    subject: 'Confirm Email',
-    html: verifyEmailTemplate.template(name)
-  };
+      const mailOptions = {
+        from: conf.smtpServer.from,
+        to: email,
+        subject: 'Confirm Email',
+        html: verifyEmailTemplate.template(name)
+      };
 
-  try {
-    await transporter.sendMail(mailOptions,(error, info) => {
-      if(error){
-        return res.json(error);
-      }
-      res.json({message: 'Email is sended', data: info});
-    });
+      await transporter.sendMail(mailOptions,(err, info) => {
+        if(err){
+          return reject(err);
+        }
+        return resolve({message: 'Email is sended', data: info});
+      });
+  
+      transporter.close();
 
-    transporter.close();
-  } catch (err) {
-    return next(err);
-  }
+    }catch(error){
+      return reject(error);
+    }
+  });
 };

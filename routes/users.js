@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const user = require('../controllers/UsersController');
+const auth = require('../utils/secureJwt');
 
 /**
  * @swagger
@@ -136,7 +137,7 @@ router.post('/create', user.createUser);
  *      500:
  *        description: Server error
  */
-router.post('/login', user.loginUser);
+router.post('/login', auth.optional, user.loginUser);
 
 /**
  * @swagger
