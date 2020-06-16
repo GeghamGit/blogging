@@ -16,7 +16,7 @@
     "from": "gegham.wedoappsllc@yandex.ru",
     "post": "directory",
     "port": 465,
-    "secure": false,
+    "secure": true,
     "auth": {
       "user": "gegham.wedoappsllc@yandex.ru",
       "pass": "38220129495#1"

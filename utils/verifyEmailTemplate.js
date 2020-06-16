@@ -178,8 +178,8 @@ exports.template = (name) => {
 
         </html>
       `)
-		} catch(err){
-      return reject(err)
+		} catch(error){
+      return reject(error)
     }
 	})
 };

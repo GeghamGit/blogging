@@ -118,22 +118,22 @@ const  transporter = nodemailer.createTransport(conf.smtpServer);
 exports.sendEmail = (req, res, next) => {
   return new Promise(async(resolve, reject) => {
     try{
-      const { name, email } = req.body;
+      const { email } = req.body;
 
       const mailOptions = {
         from: conf.smtpServer.from,
         to: email,
         subject: 'Confirm Email',
-        html: verifyEmailTemplate.template(name)
+        html: verifyEmailTemplate.template
       };
 
-      await transporter.sendMail(mailOptions,(err, info) => {
+      await transporter.sendMail(mailOptions, (err, info) => {
         if(err){
           return reject(err);
         }
         return resolve({message: 'Email is sended', data: info});
       });
-  
+
       transporter.close();
 
     }catch(error){
