@@ -1,115 +1,119 @@
 const Blog = require('../schema/Blog');
-const saveFile = require('../lib/saveFile');
+const { saveFile } = require('../lib/saveFile');
 const BlogStructure = require('../data/BlogStructure');
 const valid = require('../validate/validate')
 
-exports.getAllBlogs = (req, res, next) => {
-  return new Promise((resolve, reject) => {
+exports.getAllBlogs = async (req, res, next) => {
     try{
-      Blog.find({}, (err, allBlogs) => {
-        if(err){
-          return reject({message: err.message});
-        }
-        return resolve(allBlogs);
-      });
-    }catch(error){
-      return reject(error);
-    }
-  });
-};
 
-exports.getBlogById = (req, res, next) => {
-  return new Promise((resolve, reject) => {
-    try{
-      Blog.findOne({ _id: req.params.id}, (err, blog) => {
-        if(err){
-          return reject({message: err});
-        }
-        return resolve({message: "Finded blog", data: blog });
-      });
-    }catch(error){
-      return reject(error);
-    }
-  });
-};
+      //check all blogs
+      const blogs = await Blog.find({});
 
-exports.createBlog = (req, res, next) => {
-   return new Promise(async(resolve, reject) => {
-    try {
-      const {
-        name, description,
-        image, author
-      } = req.body;
+      //if blogs are not exist - return error
+      if(!blogs) return next('Blogs are not found');
       
-      const checked = await valid.checkBlogInfo((req, res, next));
+      return res.json(blogs);
 
-      if(checked.status === true){
-        const imgConfPath = 'ads';
-        const imageName = await saveFile(image, imgConfPath);
-    
-        const blog = new Blog({
-          name,
-          description,
-          author,
-          image: { link: imageName }
-        });
-    
-        const resultat = await blog.save();
-    
-        const blogData = new BlogStructure(resultat);
-    
-        return resolve(blogData.getBlog());
-      } else {
-        return reject(checked);
-      }
-    } catch (error) {
-      return reject(next(error));
+    } catch (err){
+      return next(err);
     }
-  });
 };
 
-exports.updateBlog = (req, res, next) => {
-  return new Promise(async(resolve, reject) => {
+exports.getBlogById = async(req, res, next) => {
     try{
-      const {
-        name, description,
-        image, author
-      } = req.body;
 
-      const checked = await valid.checkBlogInfo((req, res, next));
+      //check blog by id
+      const blog = await Blog.findOne({ _id: req.params.id})
 
-      if(checked.status === true){
-        const imgConfPath = 'ads';
-        const imageName = await saveFile(image, imgConfPath);
+      //if blog is not exist - return error
+      if(!blog) return next('Blog is not found');
 
-        Blog.updateOne({ _id: req.params.id}, {name, description, image: { link: imageName }, author }, async(err, updatedBlog) => {
-          if(err){
-            return reject({error: err , message: "Blog is can not updated"})
-          }
-          return resolve(updatedBlog)
-        });
-      }
-      
-      return reject(checked)
+      return res.json({message: "Finded blog", blog });
 
-    } catch(error){
-      return reject(error)
+    } catch (err){
+      return next(err);
     }
-  });
 };
 
+exports.createBlog = async (req, res, next) => {
+  try {
+    //get data for new blog
+    const {
+      name, description,
+      image
+    } = req.body;
+    
+    //check blog data
+    const checked = await valid.checkBlogInfo(req, res, next);
 
-exports.deleteBlog = (req, res, next) => {
-  return new Promise((resolve, reject) => {
-    try{
-      Blog.deleteOne({ _id: req.params.id}, (err, blog) => {
-        if(err){
-          return reject({message: err.message});
-        }
-        return resolve({message: "Blog is deleted", data: blog });
-      });
-    }catch(error){
-      return reject(error);
-    }
-  });
+    //if blog data is incorrect
+    if(!checked.status) return next('Please enter correct information')
+
+    //get image name
+    const imgConfPath = 'ads';
+    const imageName = await saveFile(image, imgConfPath, res, next);
+
+    //create new blog model
+    const blog = new Blog({
+      name,
+      description,
+      image: { link: imageName }
+    });
+
+    //save new blog
+    const resultat = await blog.save();
+
+    const blogData = new BlogStructure(resultat);
+
+    return res.json(blogData.getBlog());
+
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.updateBlog = async (req, res, next) => {
+  try{
+    //get data for updateing blog
+    const {
+      name, description,
+      image
+    } = req.body;
+
+    //check blog data
+    const checked = await valid.checkBlogInfo(req, res, next);
+
+    //if blog data is incorrect
+    if(!checked.status) return next('Please enter correct information')
+
+    //get image name
+    const imgConfPath = 'ads';
+    const imageName = await saveFile(image, imgConfPath, res, next);
+
+    //check user by id
+    const blog = await Blog.updateOne({ _id: req.params.id}, {name, description, image: { link: imageName } });
+    
+    //if blog is not exist - return error
+    if(!blog) return next("Blog is can not updated");
+
+    return res.json(blog)
+    
+  } catch(err){
+    return next(err)
+  }
+};
+
+exports.deleteBlog = async (req, res, next) => {
+  try{
+    //check blog by id
+    const blog = await Blog.deleteOne({ _id: req.params.id});
+
+    //if blog is not exist - return error
+    if(!blog) return next('Blog is not exist');
+
+    return res.json({message: "Blog is deleted", data: blog });
+
+  } catch (err){
+    return next(err);
+  }
 };

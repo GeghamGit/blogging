@@ -49,7 +49,7 @@ router.get('/:id', user.getUserById);
 
 /**
  * @swagger
- * /auth/:
+ * /auth/create:
  *  post:
  *    summary: Create new user
  *    tags:
@@ -139,34 +139,34 @@ router.post('/create', user.createUser);
  */
 router.post('/login', auth.optional, user.loginUser);
 
-/**
- * @swagger
- * /auth/send-email:
- *  post:
- *    summary: Send test email
- *    tags:
- *      - Users
- *    parameters:
- *      - name: body
- *        in: body
- *        required: true
- *        schema:
- *          type: object
- *          required:
- *            - email
- *          properties:
- *            email:
- *          example: {
- *            "email": "test@email.ru",
- *          }
- *    responses:
- *      200:
- *        description: Success response
- *      404:
- *        description: Not found
- *      500:
- *        description: Server error
- */
-router.post('/send-email', user.sendEmail);
+// /**
+//  * @swagger
+//  * /auth/send-email:
+//  *  post:
+//  *    summary: Send test email
+//  *    tags:
+//  *      - Users
+//  *    parameters:
+//  *      - name: body
+//  *        in: body
+//  *        required: true
+//  *        schema:
+//  *          type: object
+//  *          required:
+//  *            - email
+//  *          properties:
+//  *            email:
+//  *          example: {
+//  *            "email": "test@email.ru",
+//  *          }
+//  *    responses:
+//  *      200:
+//  *        description: Success response
+//  *      404:
+//  *        description: Not found
+//  *      500:
+//  *        description: Server error
+//  */
+// router.post('/send-email', user.sendEmail);
 
 module.exports = router;

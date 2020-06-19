@@ -7,7 +7,7 @@ const blogSchema = new Schema({
     required: true,
     trim: true,
     max: [60, "Մաքսիմում պետք է լինի 60 սիմվոլ"],
-    min: [10, "Մինիմում պետք է լինի 10 սիմվոլ"]
+    min: [3, "Մինիմում պետք է լինի 3 սիմվոլ"]
   },
   description: {
     type: String,

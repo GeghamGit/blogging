@@ -1,38 +1,37 @@
 exports.checkUserInfo = async (req, res, next) => {
-  return new Promise((resolve, reject) => {
-    try{
-      let { firstName, surname, lastName, nickName, address, email, password } = req.body;
 
-      if(!firstName || !surname || !lastName || !nickName || !address || !email || !password){
-        return reject({message: "Incomplate fields"});
-      }
-      const regexp = `/[.[\]{}()*+?.,\\$|#\s]/g, '\\&&'`;
+  //get user data
+  let { firstName, surname, lastName, nickName, address, email, password } = req.body;
 
-      firstName = firstName.trim().replace(regexp);
-      surname = surname.trim().replace(regexp);
-      lastName = lastName.trim().replace(regexp);
-      nickName = nickName.trim().replace(regexp);
+  //if not exist some of field of user data - return error
+  if(!firstName || !surname || !lastName || !nickName || !address || !email || !password){
+    
+    return next('Incomplate fields');
+  }
 
-      return resolve({status: true});
-    }catch(error){
-      return reject({status: false, message: error})
-    }
-  })
+  const regexp = `/[.[\]{}()*+?.,\\$|#\s]/g, '\\&&'`;
+
+  //clean user data
+  firstName = firstName.trim().replace(regexp);
+  surname = surname.trim().replace(regexp);
+  lastName = lastName.trim().replace(regexp);
+  nickName = nickName.trim().replace(regexp);
+  email = email.trim();
+  password = password.trim()
+
+  return ({status: true});    
 };
 
 exports.checkBlogInfo = async (req, res, next) => {
-  return new Promise((resolve, reject) => {
-    try{
-      let { name, description, image } = req.body;
-      const regexp = `/[.[\]{}()*+?.,\\$|#\s]/g, '\\&&'`;
 
-      name = name.trim().replace(regexp);
-      description = description.trim().replace(regexp);
-      image = image.trim().replace(regexp);
+  //get blog data
+  let { name, description } = req.body;
 
-      return resolve({status: true});
-    }catch(error){
-      return reject({status: false, message: error})
-    }
-  })
+  const regexp = `/[.[\]{}()*+?.,\\$|#\s]/g, '\\&&'`;
+
+  //clean blog data
+  name = name.trim().replace(regexp);
+  description = description.trim().replace(regexp);
+
+  return ({status: true});
 };

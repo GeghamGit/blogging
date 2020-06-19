@@ -52,7 +52,7 @@ router.get('/:id', blogsController.getBlogById);
 
 /**
  * @swagger
- * /blogs/:
+ * /blogs/create:
  *  post:
  *    summary: Create new blog
  *    description:
@@ -79,7 +79,6 @@ router.get('/:id', blogsController.getBlogById);
  *            "name": "Գեղամ",
  *            "description": "Բլոգի մանրամասն նկարագրությունը",
  *            "image": "base 64 image data",
- *            "author": "author id",
  *          }
  *    responses:
  *      200:
@@ -89,7 +88,7 @@ router.get('/:id', blogsController.getBlogById);
  *      500:
  *        description: Server error
  */
-router.post('/', blogsController.createBlog);
+router.post('/create', blogsController.createBlog);
 
 /**
  * @swagger
@@ -119,8 +118,7 @@ router.post('/', blogsController.createBlog);
  *          example: {
  *            "name": "Գեղամ",
  *            "description": "Բլոգի մանրամասն նկարագրությունը",
- *            "image": "base 64 image data",
- *            "author": "author id",
+ *            "image": "base 64 image data"
  *          }
  *    responses:
  *      200:
