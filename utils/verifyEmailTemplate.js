@@ -127,11 +127,11 @@ const template = (nickName) => {
   `)
 };
 
-//creating transport from SMTPserver
-const  transporter = nodemailer.createTransport(conf.smtpServer);
-
 exports.sendEmail = async (req, res, next) => {
   try{
+
+    //creating transport from SMTPserver
+    const  transporter = nodemailer.createTransport(conf.smtpServer);
 
     //get user data
     const { email, nickName } = req.body;
@@ -149,15 +149,15 @@ exports.sendEmail = async (req, res, next) => {
 
     //if verification message is not sended - return error
     if(!sendDone){
-      return next(err);
+      return next({error: true, message: "Email is not sended"});
     }
 
     //close opened transport 
     transporter.close();
     
-    return res.json('Email is sended');
+    return res.json({status: true, message: 'Email is sended'});
 
   } catch (err){
-    return next(err);
+    return next(err.message);
   }
 };

@@ -81,7 +81,8 @@ router.get('/:id', user.getUserById);
  *            "lastName": "Թաթոս",
  *            "nickName": "Գեղամ94",
  *            "address": "Գյումրի",
- *            "email": "gegham94@gmail.com"
+ *            "email": "Your email",
+ *            "password": "Your password"
  *          }
  *    responses:
  *      200:
@@ -107,27 +108,13 @@ router.post('/create', user.createUser);
  *        schema:
  *          type: object
  *          properties:
- *            firstName:
- *              type: string
- *            surname:
- *              type: string
- *            lastName:
- *              type: string
- *            nickName:
- *              type: string
- *            address:
- *              type: string
  *            email:
  *              type: string
  *            password:
  *              type: string
  *          example: {
- *            "firstName": "Գեղամ",
- *            "surname": "Հարությունյան",
- *            "lastName": "Թաթոս",
- *            "nickName": "Գեղամ94",
- *            "address": "Գյումրի",
- *            "email": "gegham94@gmail.com"
+ *            "email": "Your email",
+ *            "password": "Your password"
  *          }
  *    responses:
  *      200:

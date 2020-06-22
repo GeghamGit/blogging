@@ -37,17 +37,16 @@ exports.getBlogById = async(req, res, next) => {
 
 exports.createBlog = async (req, res, next) => {
   try {
-    //get data for new blog
-    const {
-      name, description,
-      image
-    } = req.body;
     
     //check blog data
     const checked = await valid.checkBlogInfo(req, res, next);
 
     //if blog data is incorrect
-    if(!checked.status) return next('Please enter correct information')
+    if(!checked.status) return next('Please enter correct information');
+
+    //get data for new blog
+    const { name, description } = checked;
+    const image = req.body.image;
 
     //get image name
     const imgConfPath = 'ads';

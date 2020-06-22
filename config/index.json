@@ -23,12 +23,12 @@
     }
   },
   "media": {
-    "user_original_dir": "public/img/users/original",
-    "user_cropped_dir": "public/img/users/cropped",
-    "user_min_dir": "public/img/users/min",
-    "ads_original_dir": "public/img/ads/original",
-    "ads_cropped_dir": "public/img/ads/cropped",
-    "ads_min_dir": "public/img/ads/min"
+    "user_original_dir": "../public/img/users/original",
+    "user_cropped_dir": "../public/img/users/cropped",
+    "user_min_dir": "../public/img/users/min",
+    "ads_original_dir": "../public/img/ads/original",
+    "ads_cropped_dir": "../public/img/ads/cropped",
+    "ads_min_dir": "../public/img/ads/min"
   },
   "swagger": {
     "swaggerDefinition": {

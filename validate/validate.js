@@ -19,7 +19,16 @@ exports.checkUserInfo = async (req, res, next) => {
   email = email.trim();
   password = password.trim()
 
-  return ({status: true});    
+  return ({
+    status: true,
+    firstName,
+    surname,
+    lastName,
+    nickName,
+    address,
+    email,
+    password
+  });    
 };
 
 exports.checkBlogInfo = async (req, res, next) => {
@@ -33,5 +42,9 @@ exports.checkBlogInfo = async (req, res, next) => {
   name = name.trim().replace(regexp);
   description = description.trim().replace(regexp);
 
-  return ({status: true});
+  return ({
+    status: true,
+    name,
+    description
+  });
 };
