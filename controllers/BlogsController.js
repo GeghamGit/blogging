@@ -49,8 +49,7 @@ exports.createBlog = async (req, res, next) => {
     const image = req.body.image;
 
     //get image name
-    const imgConfPath = 'ads';
-    const imageName = await saveFile(image, imgConfPath, res, next);
+    const imageName = await saveFile(image, imgConfPath = 'ads', res, next);
 
     //create new blog model
     const blog = new Blog({

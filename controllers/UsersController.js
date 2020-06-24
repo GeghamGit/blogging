@@ -46,7 +46,7 @@ exports.createUser = async(req, res, next) => {
 
     //if some of fields is wrong - return error
     if(!checked.status){
-      return next(checked);
+      return next('incorrect_fields');
     }
 
     //get user data
@@ -57,11 +57,10 @@ exports.createUser = async(req, res, next) => {
     const user = await User.findOne({email})
 
     //if user already exist - return info message
-    if(user) return next({err: `User with email ${req.body.email} already exist`})
+    if(user) return next(`User with email ${req.body.email} already exist`)
 
     //call function for save image with user path
-    const imgConfPath = 'user';
-    const imageName = await saveFile(image, imgConfPath, res, next);
+    const imageName = await saveFile(image, imgConfPath = 'user', res, next);
 
     //create new user model from User schema
     const newUser = new User({
@@ -70,8 +69,8 @@ exports.createUser = async(req, res, next) => {
       lastName,
       nickName,
       address,
-      email,
       password,
+      email,
       image: { link: imageName }
     });
   
@@ -86,7 +85,7 @@ exports.createUser = async(req, res, next) => {
       return next('User is not saved');
     }
 
-    return res.json(savedUser);
+    return res.json({message: 'user is saved'});
 
   } catch (err) {
     return next(err);
