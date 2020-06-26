@@ -1,8 +1,9 @@
 const User = require('../schema/User');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 const valid = require('../validate/validate');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
-const {saveFile} = require('../lib/saveFile');
+// const {saveFile} = require('../lib/saveFile');
 
 exports.getUsers = async(req, res, next) => {
   try{
@@ -49,80 +50,59 @@ exports.createUser = async(req, res, next) => {
       return next('incorrect_fields');
     }
 
-    //get user data
-    const { firstName, surname, lastName, nickName, address, email, password } = checked;
-    const image = req.body.image;
-
     //get user by email
-    const user = await User.findOne({email})
+    const user = await User.findOne({email: checked.email})
 
     //if user already exist - return info message
     if(user) return next(`User with email ${req.body.email} already exist`)
 
     //call function for save image with user path
-    const imageName = await saveFile(image, imgConfPath = 'user', res, next);
-
-    //create new user model from User schema
-    const newUser = new User({
-      firstName,
-      surname,
-      lastName,
-      nickName,
-      address,
-      password,
-      email,
-      image: { link: imageName }
-    });
+    // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
   
     //call email sender function
     await verifyEmailTemplate.sendEmail(req, res, next);
-
-    //save new user
-    const savedUser = await newUser.save();
-
-    //if user not saved - return error
-    if (!savedUser) {
-      return next('User is not saved');
-    }
-
-    return res.json({message: 'user is saved'});
+    
+    return (checked)
 
   } catch (err) {
     return next(err);
   }
 };
 
-exports.loginUser = (req, res, next) => {
-  try{
+exports.signupUser = () => {
+  passport.authenticate('signup', {session: false}, async(req, res, next) => {
+    try{
 
-    //get data from user
-    const user = {email: req.body.email, password: req.body.password};
+      res.json({
+        message : 'Signup successful',
+        user: req.user
+      });
   
-    //if email field is empty - return error
-    if(!user.email) {
-      return next({message: "email is required"});
+    } catch (err) {
+      return next(err)
     }
-  
-    //if password field is empty - return error
-    if(!user.password) {
-      return next({message: "password is required"});
+  })
+};
+
+
+exports.loginUser = (req, res, next) => {
+  passport.authenticate('login', async (err, user) => {
+    try {
+      if(err || !user){
+        return next(new Error('An Error occurred'))
+      }
+
+      req.login(user, { session : false }, async (error) => {
+        if( error ) return next(error)
+
+        const body = { _id : user._id, email : user.email };
+
+        const token = jwt.sign({ user : body },'gh#1jwtSecretgh#1');
+
+        return res.json({ token });
+      });
+    } catch (error) {
+      return next(error);
     }
-  
-    return passport.authenticate('local', { session: false }, (err, passportUser) => {
-      if(err) {
-        return next(err);
-      }
-  
-      if(passportUser) {
-        const user = passportUser;
-        user.token = passportUser.generateJWT();
-  
-        return resolve({ user: user.toAuthJSON() });
-      }
-  
-      return next(status(400));
-    });
-  } catch (err) {
-    return next(err)
-  }
+})(req, res, next);
 };

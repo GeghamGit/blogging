@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const user = require('../controllers/UsersController');
-const auth = require('../utils/secureJwt');
 
 /**
  * @swagger
@@ -96,6 +95,52 @@ router.post('/create', user.createUser);
 
 /**
  * @swagger
+ * /auth/signup:
+ *  post:
+ *    summary: Create new user
+ *    tags:
+ *      - Users
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        required: true
+ *        schema:
+ *          type: object
+ *          properties:
+ *            firstName:
+ *              type: string
+ *            surname:
+ *              type: string
+ *            lastName:
+ *              type: string
+ *            nickName:
+ *              type: string
+ *            address:
+ *              type: string
+ *            email:
+ *              type: string
+ *            password:
+ *              type: string
+ *          example: {
+ *            "firstName": "Գեղամ",
+ *            "surname": "Հարությունյան",
+ *            "lastName": "Թաթոս",
+ *            "nickName": "Գեղամ94",
+ *            "address": "Գյումրի",
+ *            "email": "Your email",
+ *            "password": "Your password"
+ *          }
+ *    responses:
+ *      200:
+ *        description: Success response
+ *      404:
+ *        description: Not found
+ *      500:
+ *        description: Server error
+ */
+router.post('/signup', user.signupUser);
+/**
+ * @swagger
  * /auth/{id}:
  *  post:
  *    summary: Log in user
@@ -124,36 +169,6 @@ router.post('/create', user.createUser);
  *      500:
  *        description: Server error
  */
-router.post('/login', auth.optional, user.loginUser);
-
-// /**
-//  * @swagger
-//  * /auth/send-email:
-//  *  post:
-//  *    summary: Send test email
-//  *    tags:
-//  *      - Users
-//  *    parameters:
-//  *      - name: body
-//  *        in: body
-//  *        required: true
-//  *        schema:
-//  *          type: object
-//  *          required:
-//  *            - email
-//  *          properties:
-//  *            email:
-//  *          example: {
-//  *            "email": "test@email.ru",
-//  *          }
-//  *    responses:
-//  *      200:
-//  *        description: Success response
-//  *      404:
-//  *        description: Not found
-//  *      500:
-//  *        description: Server error
-//  */
-// router.post('/send-email', user.sendEmail);
+router.post('/login', user.loginUser);
 
 module.exports = router;

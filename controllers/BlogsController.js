@@ -1,7 +1,7 @@
 const Blog = require('../schema/Blog');
-const { saveFile } = require('../lib/saveFile');
 const BlogStructure = require('../data/BlogStructure');
-const valid = require('../validate/validate')
+const valid = require('../validate/validate');
+// const { saveFile } = require('../lib/saveFile');
 
 exports.getAllBlogs = async (req, res, next) => {
     try{
@@ -46,16 +46,16 @@ exports.createBlog = async (req, res, next) => {
 
     //get data for new blog
     const { name, description } = checked;
-    const image = req.body.image;
+    // const image = req.body.image;
 
     //get image name
-    const imageName = await saveFile(image, imgConfPath = 'ads', res, next);
+    // const imageName = await saveFile(image, imgConfPath = 'ads', res, next);
 
     //create new blog model
     const blog = new Blog({
       name,
-      description,
-      image: { link: imageName }
+      description
+      // image: { link: imageName }
     });
 
     //save new blog
@@ -85,8 +85,7 @@ exports.updateBlog = async (req, res, next) => {
     if(!checked.status) return next('Please enter correct information')
 
     //get image name
-    const imgConfPath = 'ads';
-    const imageName = await saveFile(image, imgConfPath, res, next);
+    // const imageName = await saveFile(image, imgConfPath = 'ads', res, next);
 
     //check user by id
     const blog = await Blog.updateOne({ _id: req.params.id}, {name, description, image: { link: imageName } });

@@ -92,7 +92,7 @@ const template = (nickName) => {
                               <td bgcolor="#ffffff" align="center" style="padding: 20px 30px 60px 30px;">
                                 <table border="0" cellspacing="0" cellpadding="0">
                                   <tr>
-                                    <td align="center" style="border-radius: 3px;" bgcolor="#FFA73B"><a href="#" target="_blank" style="font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 2px; border: 1px solid #FFA73B; display: inline-block;">Confirm your Email</a></td>
+                                    <td align="center" style="border-radius: 3px;" bgcolor="#FFA73B"><a href="${conf.server.url}:${conf.server.port}/auth/signup" target="_blank" style="font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 2px; border: 1px solid #FFA73B; display: inline-block;">Confirm your Email</a></td>
                                   </tr>
                                 </table>
                               </td>
