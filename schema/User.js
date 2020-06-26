@@ -37,7 +37,11 @@ const userSchema = new Schema({
     required: true,
     unique: true,
     trim: true,
-    index: true
+    index: true,
+  },
+  emaiIslVerify: {
+    type: Boolean,
+    default: false
   },
   password: {
     type: String,

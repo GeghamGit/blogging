@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const user = require('../controllers/UsersController');
+const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
 
 /**
  * @swagger
@@ -139,9 +140,10 @@ router.post('/create', user.createUser);
  *        description: Server error
  */
 router.post('/signup', user.signupUser);
+
 /**
  * @swagger
- * /auth/{id}:
+ * /auth/login{id}:
  *  post:
  *    summary: Log in user
  *    tags:
@@ -170,5 +172,37 @@ router.post('/signup', user.signupUser);
  *        description: Server error
  */
 router.post('/login', user.loginUser);
+
+/**
+ * @swagger
+ * /auth//email/verify:
+ *  post:
+ *    summary: Log in user
+ *    tags:
+ *      - Users
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        required: true
+ *        schema:
+ *          type: object
+ *          properties:
+ *            email:
+ *              type: string
+ *            password:
+ *              type: string
+ *          example: {
+ *            "email": "Your email",
+ *            "password": "Your password"
+ *          }
+ *    responses:
+ *      200:
+ *        description: Success response
+ *      404:
+ *        description: Not found
+ *      500:
+ *        description: Server error
+ */
+router.get('/email/verify', verifyEmailTemplate.verifyEmail);
 
 module.exports = router;

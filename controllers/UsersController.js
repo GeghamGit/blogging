@@ -5,6 +5,7 @@ const valid = require('../validate/validate');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
 // const {saveFile} = require('../lib/saveFile');
 
+//getting all users...
 exports.getUsers = async(req, res, next) => {
   try{
 
@@ -12,7 +13,7 @@ exports.getUsers = async(req, res, next) => {
     const users = await User.find({});
 
     //if users are not exist - return error
-    if(!users) return next('Users are not exist');
+    if(!users) return res.json({message: 'Users not exist'});
       
     return res.json(users);
 
@@ -21,6 +22,7 @@ exports.getUsers = async(req, res, next) => {
   }
 };
 
+//getting user by own id...
 exports.getUserById = async(req, res, next) => {
   try{
 
@@ -28,17 +30,18 @@ exports.getUserById = async(req, res, next) => {
     const user = await User.find({ _id: req.params.id})
 
     //if user are not exist - return error
-    if(!user) return next('User not found');
+    if(!user) return res.json({message: 'User not found'});
       
     if(user){
       return res.json({message: "Finded user", data: user })
     }
-      return next("You are have not account, go to registrate if you want` ");
+      return res.json({message: "You are have not account, go to registrate if you want` "});
   }catch(err){
     return next(err);
   }
 };
 
+//checking user data and verify own email...
 exports.createUser = async(req, res, next) => {
   try{
 
@@ -54,7 +57,7 @@ exports.createUser = async(req, res, next) => {
     const user = await User.findOne({email: checked.email})
 
     //if user already exist - return info message
-    if(user) return next(`User with email ${req.body.email} already exist`)
+    if(user) return res.json(`User with email ${req.body.email} already exist`)
 
     //call function for save image with user path
     // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
@@ -69,11 +72,12 @@ exports.createUser = async(req, res, next) => {
   }
 };
 
-exports.signupUser = () => {
-  passport.authenticate('signup', {session: false}, async(req, res, next) => {
+//registratin user..
+exports.signupUser = (req, res, next) => {
+  passport.authenticate('signup', {session: false}, async() => {
     try{
 
-      res.json({
+      return res.json({
         message : 'Signup successful',
         user: req.user
       });
@@ -84,7 +88,7 @@ exports.signupUser = () => {
   })
 };
 
-
+//login user...
 exports.loginUser = (req, res, next) => {
   passport.authenticate('login', async (err, user) => {
     try {

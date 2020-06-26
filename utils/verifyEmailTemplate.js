@@ -1,7 +1,8 @@
 const nodemailer = require('nodemailer');
 const conf = require ('../config');
+const { v4: uuidv4 } = require('uuid');
 
-const template = (nickName) => {
+const template = (nickName, link) => {
   return (`
     <!DOCTYPE html>
     <html>
@@ -92,33 +93,18 @@ const template = (nickName) => {
                               <td bgcolor="#ffffff" align="center" style="padding: 20px 30px 60px 30px;">
                                 <table border="0" cellspacing="0" cellpadding="0">
                                   <tr>
-                                    <td align="center" style="border-radius: 3px;" bgcolor="#FFA73B"><a href="${conf.server.url}:${conf.server.port}/auth/signup" target="_blank" style="font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 2px; border: 1px solid #FFA73B; display: inline-block;">Confirm your Email</a></td>
+                                    <td align="center" style="border-radius: 3px;" bgcolor="#FFA73B"><a href="${link}" target="_blank" style="font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 2px; border: 1px solid #FFA73B; display: inline-block;">Confirm your Email</a></td>
                                   </tr>
                                 </table>
                               </td>
                             </tr>
                         </table>
                     </td>
-                  </tr> <!-- COPY -->
-                  <tr>
-                    <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 20px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
-                      <p style="margin: 0;">If you have any questions, just reply to this email—we're always happy to help out.</p>
-                    </td>
-                  </>
+                  </tr>
               </table>
             </td>
           </tr>
           <tr>
-            <td bgcolor="#f4f4f4" align="center" style="padding: 30px 10px 0px 10px;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
-                <tr>
-                  <td bgcolor="#FFECD1" align="center" style="padding: 30px 30px 30px 30px; border-radius: 4px 4px 4px 4px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
-                    <h2 style="font-size: 20px; font-weight: 400; color: #111111; margin: 0;">Need more help?</h2>
-                    <p style="margin: 0;"><a href="#" target="_blank" style="color: #FFA73B;">We&rsquo;re here to help you out</a></p>
-                  </td>
-                </tr>
-              </table>
-            </td>
           </tr>
       </table>
     </body>
@@ -126,6 +112,9 @@ const template = (nickName) => {
     </html>
   `)
 };
+
+
+let random, host, link;
 
 exports.sendEmail = async (req, res, next) => {
   try{
@@ -135,13 +124,16 @@ exports.sendEmail = async (req, res, next) => {
 
     //get user data
     const { email, nickName } = req.body;
+    random = `${uuidv4()}Sec-Code${uuidv4()}`;
+    host = req.get('host');
+    link = `http://${host}/auth/email/verify?id=${random}`;
 
     //create mail options
     const mailOptions = {
       from: conf.smtpServer.from,
       to: email,
       subject: 'Confirm Email',
-      html: template(nickName)
+      html: template(nickName, link)
     };
 
     //send email verification
@@ -158,6 +150,25 @@ exports.sendEmail = async (req, res, next) => {
     return res.json({status: true, message: 'Email is sended'});
 
   } catch (err){
-    return next(err.message);
+    return next(err);
+  }
+};
+
+exports.verifyEmail = async(req, res, next) => {
+  try{
+    console.log(`${req.protocol}://${req.get('host')}`)
+    console.log(`http://${host}`)
+    if(`${req.protocol}://${req.get('host')}` === `http://${host}`){
+      if(req.query.id === random){
+        return res.json({status: "OK", message: 'Your email is successfuly verifyed'})
+      } else {
+        return res.json({status: "ERROR", message: 'Your email is not verifyed'});
+      }
+    } else {
+      return res.json({status: "ERROR", message: 'Please check the link is corrent or not'});
+    }
+
+  } catch (err) {
+    return next(err);
   }
 };

@@ -6,7 +6,7 @@ exports.checkUserInfo = async (req, res, next) => {
   //if not exist some of field of user data - return error
   if(!firstName || !surname || !lastName || !nickName || !address || !email || !password){
     
-    return next('Incomplate fields');
+    return res.json({message: 'Incomplate fields'});
   }
 
   const regexp = `/[.[\]{}()*+?.,\\$|#\s]/g, '\\&&'`;
