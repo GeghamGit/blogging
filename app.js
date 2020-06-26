@@ -9,7 +9,6 @@ const passport = require('passport');
 
 const blogRouter = require("./routes/blogs");
 const userRouter = require("./routes/users");
-const secureRoute = require("./routes/secure-router");
 
 const app = express();
 const specs = swaggerJsdoc(conf.swagger);
