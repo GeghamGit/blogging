@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+
 const { Schema } = require('../lib/dbConnect');
 
 const userSchema = new Schema({
@@ -43,9 +45,11 @@ const userSchema = new Schema({
     type: Boolean,
     default: false
   },
-  password: {
-    type: String,
-    required: true
+  hash: {
+    type: String
+  },
+  salt: {
+    type: String
   },
   image: {
     link: { type: String, default: "default.jpg" },
@@ -54,25 +58,35 @@ const userSchema = new Schema({
   },
 });
 
+userSchema.methods.setPassword = (password) => {
+  this.salt = crypto.randomBytes(16).toString('hex');
+  this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+};
 
-userSchema.pre('save', async(next) => {
+userSchema.methods.validatePassword = (password) => {
+  const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+  return this.hash === hash;
+};
 
-  const user = this;
+userSchema.methods.generateJWT = () => {
+  const today = new Date();
+  const expirationDate = new Date(today);
+  expirationDate.setDate(today.getDate() + 60);
 
-  const hash = await bcrypt.hash(this.password, 10);
-
-  this.password = hash;
-
-  next();
-});
-
-userSchema.methods.isValidPassword = async(password) => {
-
-  const user = this;
-
-  const compare = await bcrypt.compare(password, user.password);
-
-  return compare;
+  return jwt.sign({
+    email: this.email,
+    id: this._id,
+    exp: parseInt(expirationDate.getTime() / 1000, 10),
+  }, 'gh1sec-c0de-jwt77sec9Ac');
 }
+
+userSchema.methods.toAuthJSON = () => {
+  return {
+    _id: this._id,
+    email: this.email,
+    token: this.generateJWT(),
+  };
+};
+
 
 module.exports = mongoose.model('User', userSchema);

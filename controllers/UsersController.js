@@ -1,6 +1,5 @@
 const User = require('../schema/User');
 const passport = require('passport');
-const jwt = require('jsonwebtoken');
 const valid = require('../validate/validate');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
 // const {saveFile} = require('../lib/saveFile');
@@ -44,7 +43,6 @@ exports.getUserById = async(req, res, next) => {
 //checking user data and verify own email...
 exports.createUser = async(req, res, next) => {
   try{
-
     //check user data
     const checked = await valid.checkUserInfo(req, res, next);
 
@@ -57,54 +55,53 @@ exports.createUser = async(req, res, next) => {
     const user = await User.findOne({email: checked.email})
 
     //if user already exist - return info message
-    if(user) return res.json(`User with email ${req.body.email} already exist`)
+    if(user) return res.json(`User with email ${checked.email} already exist`)
 
     //call function for save image with user path
     // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
   
     //call email sender function
     await verifyEmailTemplate.sendEmail(req, res, next);
+
+    const finalUser = new User(checked);
+
+    await finalUser.setPassword(checked.password);
+
+    await finalUser.save();
     
-    return (checked)
+    return res.json({ user: finalUser.toAuthJSON() });
 
   } catch (err) {
     return next(err);
   }
 };
 
-//registratin user..
-exports.signupUser = (req, res, next) => {
-  passport.authenticate('signup', {session: false}, async() => {
-    try{
-
-      return res.json({
-        message : 'Signup successful',
-        user: req.user
-      });
-  
-    } catch (err) {
-      return next(err)
-    }
-  })
-};
-
 //login user...
 exports.loginUser = (req, res, next) => {
-  passport.authenticate('login', async (err, user) => {
+
+  if(!req.body.email) {
+    return res.json({message: 'email is required'});
+  }
+
+  if(!req.body.password) {
+    return res.json({message: 'password is required'});
+  }
+
+  return passport.authenticate('local', {session: false}, async (err, passportUser) => {
     try {
-      if(err || !user){
-        return next(new Error('An Error occurred'))
+      if(err){
+        return next(err)
       }
 
-      req.login(user, { session : false }, async (error) => {
-        if( error ) return next(error)
+      if(!passportUser) {
+        return res.json({ message: 'Unauthorized user!'});
+      }
 
-        const body = { _id : user._id, email : user.email };
+      const user = passportUser;
+      user.token = await passportUser.generateJWT();
 
-        const token = jwt.sign({ user : body },'gh#1jwtSecretgh#1');
-
-        return res.json({ token });
-      });
+      return res.json({ user: user.toAuthJSON() });
+      
     } catch (error) {
       return next(error);
     }

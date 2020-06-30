@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const user = require('../controllers/UsersController');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
+const auth = require('../utils/jwt')
 
 /**
  * @swagger
@@ -92,54 +93,7 @@ router.get('/:id', user.getUserById);
  *      500:
  *        description: Server error
  */
-router.post('/create', user.createUser);
-
-/**
- * @swagger
- * /auth/signup:
- *  post:
- *    summary: Create new user
- *    tags:
- *      - Users
- *    parameters:
- *      - name: body
- *        in: body
- *        required: true
- *        schema:
- *          type: object
- *          properties:
- *            firstName:
- *              type: string
- *            surname:
- *              type: string
- *            lastName:
- *              type: string
- *            nickName:
- *              type: string
- *            address:
- *              type: string
- *            email:
- *              type: string
- *            password:
- *              type: string
- *          example: {
- *            "firstName": "Գեղամ",
- *            "surname": "Հարությունյան",
- *            "lastName": "Թաթոս",
- *            "nickName": "Գեղամ94",
- *            "address": "Գյումրի",
- *            "email": "Your email",
- *            "password": "Your password"
- *          }
- *    responses:
- *      200:
- *        description: Success response
- *      404:
- *        description: Not found
- *      500:
- *        description: Server error
- */
-router.post('/signup', user.signupUser);
+router.post('/create', auth.optional, user.createUser);
 
 /**
  * @swagger
@@ -171,7 +125,7 @@ router.post('/signup', user.signupUser);
  *      500:
  *        description: Server error
  */
-router.post('/login', user.loginUser);
+router.post('/login', auth.optional, user.loginUser);
 
 /**
  * @swagger
