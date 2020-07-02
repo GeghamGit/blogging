@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const user = require('../controllers/UsersController');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
-const auth = require('../utils/jwt')
 
 /**
  * @swagger
@@ -93,7 +92,7 @@ router.get('/:id', user.getUserById);
  *      500:
  *        description: Server error
  */
-router.post('/create', auth.optional, user.createUser);
+router.post('/create', user.createUser);
 
 /**
  * @swagger
@@ -125,7 +124,7 @@ router.post('/create', auth.optional, user.createUser);
  *      500:
  *        description: Server error
  */
-router.post('/login', auth.optional, user.loginUser);
+router.post('/login', user.loginUser);
 
 /**
  * @swagger

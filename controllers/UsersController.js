@@ -26,7 +26,7 @@ exports.getUserById = async(req, res, next) => {
   try{
 
     //chack user by id
-    const user = await User.find({ _id: req.params.id})
+    const user = await User.findOne({ _id: req.params.id})
 
     //if user are not exist - return error
     if(!user) return res.json({message: 'User not found'});
@@ -43,33 +43,26 @@ exports.getUserById = async(req, res, next) => {
 //checking user data and verify own email...
 exports.createUser = async(req, res, next) => {
   try{
+
     //check user data
     const checked = await valid.checkUserInfo(req, res, next);
-
-    //if some of fields is wrong - return error
-    if(!checked.status){
-      return next('incorrect_fields');
-    }
 
     //get user by email
     const user = await User.findOne({email: checked.email})
 
     //if user already exist - return info message
-    if(user) return res.json(`User with email ${checked.email} already exist`)
+    if(user) return res.json({message: `User with email ${checked.email} already exist`});
 
     //call function for save image with user path
     // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
   
+    const newUser = new User(checked);
+    const savedUser = await newUser.save();
+
     //call email sender function
-    await verifyEmailTemplate.sendEmail(req, res, next);
+    await verifyEmailTemplate.sendEmail(req, res, next, checked.email, checked.nickName);
 
-    const finalUser = new User(checked);
-
-    await finalUser.setPassword(checked.password);
-
-    await finalUser.save();
-    
-    return res.json({ user: finalUser.toAuthJSON() });
+    return res.json({savedUser});
 
   } catch (err) {
     return next(err);
@@ -78,29 +71,35 @@ exports.createUser = async(req, res, next) => {
 
 //login user...
 exports.loginUser = (req, res, next) => {
-
-  if(!req.body.email) {
-    return res.json({message: 'email is required'});
-  }
-
-  if(!req.body.password) {
-    return res.json({message: 'password is required'});
-  }
-
-  return passport.authenticate('local', {session: false}, async (err, passportUser) => {
+  return passport.authenticate('local', async (err, user) => {
     try {
       if(err){
         return next(err)
       }
 
-      if(!passportUser) {
-        return res.json({ message: 'Unauthorized user!'});
+      if(!user) {
+        return res.json({ message: 'Incorrect email or password !'});
       }
 
-      const user = passportUser;
-      user.token = await passportUser.generateJWT();
+      req.logIn(user, async (err) => {
+        if(err) return next(err);
 
-      return res.json({ user: user.toAuthJSON() });
+        function token(email){
+          const text = email.toString('base64');
+          const key = 'fg1C0Sec77codeac99';
+      
+          return crypto.createHmac('sha512', key)
+            .update(text)
+            .digest('hex')
+        };
+
+        const user = await User.findOne({email: req.body.email});
+        const newToken = await token(req.body.email);
+
+        if(user.token !== newToken) return res.json({message: 'Incorrect email or password !'});
+
+        return res.json({message: 'Login is succesful_(Authorized)'});
+      });
       
     } catch (error) {
       return next(error);

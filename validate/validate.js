@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 exports.checkUserInfo = async (req, res, next) => {
 
   //get user data
@@ -9,25 +11,39 @@ exports.checkUserInfo = async (req, res, next) => {
     return res.json({message: 'Incomplate fields'});
   }
 
-  const regexp = `/[.[\]{}()*+?.,\\$|#\s]/g, '\\&&'`;
+  const regexp = /[,\/!$%\^&\*;:{}=?+\~()]/g;
 
-  //clean user data
-  firstName = firstName.trim().replace(regexp);
-  surname = surname.trim().replace(regexp);
-  lastName = lastName.trim().replace(regexp);
-  nickName = nickName.trim().replace(regexp);
-  email = email.trim();
-  password = password.trim()
+  //clean and check user data
+  const checkerRegExp = async(data) => {
+    cleadData = data.trim().replace(regexp,'');
+    if(cleadData !== data) return res.json({message: `${data}_is incorrect. Please enter correct values`});
+  }
+
+  function token(email){
+    const text = email.toString('base64');
+    const key = 'fg1C0Sec77codeac99';
+
+    return crypto.createHmac('sha512', key)
+      .update(text)
+      .digest('hex')
+  }
+  
+  await checkerRegExp(firstName);
+  await checkerRegExp(surname);
+  await checkerRegExp(lastName);
+  await checkerRegExp(nickName);
+  await checkerRegExp(email);
+  const genToken = await token(email);
 
   return ({
-    status: true,
     firstName,
     surname,
     lastName,
     nickName,
     address,
     email,
-    password
+    password,
+    token: genToken
   });    
 };
 
@@ -36,11 +52,11 @@ exports.checkBlogInfo = async (req, res, next) => {
   //get blog data
   let { name, description } = req.body;
 
-  const regexp = `/[.[\]{}()*+?.,\\$|#\s]/g, '\\&&'`;
+  const regexp = /[,\/!$%\^&\*;:{}=?+\~()]/g;
 
   //clean blog data
-  name = name.trim().replace(regexp);
-  description = description.trim().replace(regexp);
+  name = name.trim().replace(regexp,'');
+  description = description.trim().replace(regexp,'');
 
   return ({
     status: true,

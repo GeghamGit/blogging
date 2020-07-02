@@ -1,8 +1,5 @@
-const mongoose = require('mongoose');
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-
-const { Schema } = require('../lib/dbConnect');
+const { Schema, model } = require('../lib/dbConnect');
 
 const userSchema = new Schema({
   firstName: {
@@ -34,6 +31,11 @@ const userSchema = new Schema({
     city: { type: String },
     address: { type: String }
   },
+  image: {
+    link: { type: String, default: "default.jpg" },
+    x: { type: Number, default: 0 },
+    y: { type: Number, default: 0 }
+  },
   email: {
     type: String,
     required: true,
@@ -41,52 +43,61 @@ const userSchema = new Schema({
     trim: true,
     index: true,
   },
-  emaiIslVerify: {
+  IsEmailVerify: {
     type: Boolean,
     default: false
   },
-  hash: {
-    type: String
+  passwordHash: {
+    type: String,
   },
   salt: {
     type: String
   },
-  image: {
-    link: { type: String, default: "default.jpg" },
-    x: { type: Number, default: 0 },
-    y: { type: Number, default: 0 }
-  },
+  token: {
+    type: String,
+    unique: true,
+  }
 });
 
-userSchema.methods.setPassword = (password) => {
-  this.salt = crypto.randomBytes(16).toString('hex');
-  this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+userSchema.virtual('password')
+  .set(function(password){
+    if(password !== undefined) {
+      if(password.length < 6) {
+        this.invalidate('password', 'Password must be minimum 6 symbols')
+      }
+    }
+
+    this._plainPassword = password;
+
+    if(password) {
+      this.salt = crypto.randomBytes(16).toString('base64');
+      this.passwordHash = crypto.pbkdf2Sync(
+        password,
+        this.salt,
+        100,
+        16,
+        'sha512'
+      ).toString('base64');
+    } else {
+      this.salt = undefined;
+      this.passwordHash = undefined;
+    }
+  })
+  .get(function(){
+    return this._plainPassword
+  });
+
+userSchema.methods.checkPassword = function(password){
+  if(!password) return false;
+  if(!this.passwordHash) return false;
+
+  return crypto.pbkdf2Sync(
+    password,
+    this.salt,
+    100,
+    16,
+    'sha512'
+  ).toString('base64') === this.passwordHash;
 };
 
-userSchema.methods.validatePassword = (password) => {
-  const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-  return this.hash === hash;
-};
-
-userSchema.methods.generateJWT = () => {
-  const today = new Date();
-  const expirationDate = new Date(today);
-  expirationDate.setDate(today.getDate() + 60);
-
-  return jwt.sign({
-    email: this.email,
-    id: this._id,
-    exp: parseInt(expirationDate.getTime() / 1000, 10),
-  }, 'gh1sec-c0de-jwt77sec9Ac');
-}
-
-userSchema.methods.toAuthJSON = () => {
-  return {
-    _id: this._id,
-    email: this.email,
-    token: this.generateJWT(),
-  };
-};
-
-
-module.exports = mongoose.model('User', userSchema);
+module.exports = model('User', userSchema);

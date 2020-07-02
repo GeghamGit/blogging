@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const User = require('../schema/User');
 const conf = require ('../config');
 const { v4: uuidv4 } = require('uuid');
 
@@ -116,24 +117,23 @@ const template = (nickName, link) => {
 
 let random, host, link;
 
-exports.sendEmail = async (req, res, next) => {
+exports.sendEmail = async (req, res, next, email, nickName) => {
   try{
 
     //creating transport from SMTPserver
     const  transporter = nodemailer.createTransport(conf.smtpServer);
 
     //get user data
-    const { email, nickName } = req.body;
-    random = `${uuidv4()}Sec-Code${uuidv4()}`;
+    random = `Sec-${uuidv4()}-Code`;
     host = req.get('host');
-    link = `http://${host}/auth/email/verify?id=${random}`;
+    link = `http://${host}/auth/email/verify?id=${random}_${email}`;
 
     //create mail options
     const mailOptions = {
       from: conf.smtpServer.from,
       to: email,
-      subject: 'Confirm Email',
-      html: template(nickName, link)
+      subject: 'Confirm Your Email',
+      html: template( nickName, link )
     };
 
     //send email verification
@@ -141,7 +141,7 @@ exports.sendEmail = async (req, res, next) => {
 
     //if verification message is not sended - return error
     if(!sendDone){
-      return next({error: true, message: "Email is not sended"});
+      return next({staus: false, message: "Email is not sended"});
     }
 
     //close opened transport 
@@ -155,17 +155,22 @@ exports.sendEmail = async (req, res, next) => {
 };
 
 exports.verifyEmail = async(req, res, next) => {
-  try{
-    console.log(`${req.protocol}://${req.get('host')}`)
-    console.log(`http://${host}`)
+  try{  
     if(`${req.protocol}://${req.get('host')}` === `http://${host}`){
-      if(req.query.id === random){
-        return res.json({status: "OK", message: 'Your email is successfuly verifyed'})
+      if(req.query.id.split('_')[0] === random){
+
+        const email = req.query.id.split('_')[1];
+      
+        const user = await User.updateOne({email}, {$set: {IsEmailVerify: true }});
+        
+        if(!user) return res.json({status: false, message: 'You are not registration with this email'});
+        
+        return res.json({status: true, message: 'Your email is successfuly verifyed'})
       } else {
-        return res.json({status: "ERROR", message: 'Your email is not verifyed'});
+        return res.json({status: false, message: 'Your email is not verifyed'});
       }
     } else {
-      return res.json({status: "ERROR", message: 'Please check the link is corrent or not'});
+      return res.json({status: false, message: 'Please check the link _ is corrent or Not'});
     }
 
   } catch (err) {
