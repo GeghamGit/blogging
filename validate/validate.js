@@ -1,4 +1,11 @@
-const crypto = require('crypto');
+const regexp = /[,\/!$%\^&\*;:{}=?+\~()]/g;
+
+//clean and check user data
+function checkerRegExp (data){
+  const cleadData = data.trim().replace(regexp,'');
+  if(cleadData !== data) return ({status: false});
+  return ({status:true, data})
+}
 
 exports.checkUserInfo = async (req, res, next) => {
 
@@ -10,41 +17,23 @@ exports.checkUserInfo = async (req, res, next) => {
     
     return res.json({message: 'Incomplate fields'});
   }
-
-  const regexp = /[,\/!$%\^&\*;:{}=?+\~()]/g;
-
-  //clean and check user data
-  const checkerRegExp = async(data) => {
-    cleadData = data.trim().replace(regexp,'');
-    if(cleadData !== data) return res.json({message: `${data}_is incorrect. Please enter correct values`});
-  }
-
-  function token(email){
-    const text = email.toString('base64');
-    const key = 'fg1C0Sec77codeac99';
-
-    return crypto.createHmac('sha512', key)
-      .update(text)
-      .digest('hex')
-  }
   
-  await checkerRegExp(firstName);
-  await checkerRegExp(surname);
-  await checkerRegExp(lastName);
-  await checkerRegExp(nickName);
-  await checkerRegExp(email);
-  const genToken = await token(email);
+  const validFirstName = await checkerRegExp(firstName);
+  if(!validFirstName.status) return res.json({message: `${validFirstName.data}_is incorrect`});
 
-  return ({
-    firstName,
-    surname,
-    lastName,
-    nickName,
-    address,
-    email,
-    password,
-    token: genToken
-  });    
+  const validSurname = await checkerRegExp(surname);
+  if(!validSurname.status) return res.json({message: `${validSurname.data}_is incorrect`});
+
+  const validLastName = await checkerRegExp(lastName);
+  if(!validLastName.status) return res.json({message: `${validLastName.data}_is incorrect`});
+
+  const validNickName = await checkerRegExp(nickName);
+  if(!validNickName.status) return res.json({message: `${validNickName.data}_is incorrect`});
+
+  const validEmail = await checkerRegExp(email);
+  if(!validEmail.status) return res.json({message: `${validEmail.data}_is incorrect`});
+
+  return true;
 };
 
 exports.checkBlogInfo = async (req, res, next) => {
@@ -52,15 +41,11 @@ exports.checkBlogInfo = async (req, res, next) => {
   //get blog data
   let { name, description } = req.body;
 
-  const regexp = /[,\/!$%\^&\*;:{}=?+\~()]/g;
+  const validName = await checkerRegExp(name);
+  if(!validFirstName.status) return res.json({message: `${validName.data}_is incorrect`});
 
-  //clean blog data
-  name = name.trim().replace(regexp,'');
-  description = description.trim().replace(regexp,'');
+  const validDescription = await checkerRegExp(description);
+  if(!validDescription.status) return res.json({message: `${validDescription.data}_is incorrect`});
 
-  return ({
-    status: true,
-    name,
-    description
-  });
+  return true;
 };

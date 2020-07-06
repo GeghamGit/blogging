@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const user = require('../controllers/UsersController');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
+const authorization = require('./authorizeUser');
 
 /**
  * @swagger
@@ -20,7 +21,7 @@ const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
  *      500:
  *        description: Server error
  */
-router.get('/', user.getUsers);
+router.get('/', authorization.userAuth, user.getUsers);
 
 /**
  * @swagger

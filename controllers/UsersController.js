@@ -1,7 +1,8 @@
 const User = require('../schema/User');
-const passport = require('passport');
+const generateToken = require('../utils/generateToken');
 const valid = require('../validate/validate');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
+const client = require('../lib/redisConnect');
 // const {saveFile} = require('../lib/saveFile');
 
 //getting all users...
@@ -30,11 +31,14 @@ exports.getUserById = async(req, res, next) => {
 
     //if user are not exist - return error
     if(!user) return res.json({message: 'User not found'});
-      
+    
+    //if user finded - return user
     if(user){
       return res.json({message: "Finded user", data: user })
     }
-      return res.json({message: "You are have not account, go to registrate if you want` "});
+
+    //if no error but user not find - return message
+    return res.json({message: "You are have not account, go to registrate if you want` "});
   }catch(err){
     return next(err);
   }
@@ -47,22 +51,27 @@ exports.createUser = async(req, res, next) => {
     //check user data
     const checked = await valid.checkUserInfo(req, res, next);
 
+    if(!checked) return res.json(checked)
+
     //get user by email
-    const user = await User.findOne({email: checked.email})
+    const user = await User.findOne({email: req.body.email})
 
     //if user already exist - return info message
-    if(user) return res.json({message: `User with email ${checked.email} already exist`});
+    if(user) return res.json({message: `User with email ${req.body.email} already exist`});
 
     //call function for save image with user path
     // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
   
-    const newUser = new User(checked);
+    //create user data
+    const newUser = new User(req.body);
+
+    //save user in db
     const savedUser = await newUser.save();
 
     //call email sender function
-    await verifyEmailTemplate.sendEmail(req, res, next, checked.email, checked.nickName);
+    await verifyEmailTemplate.sendEmail(req, res, next, req.body.email, req.body.nickName);
 
-    return res.json({savedUser});
+    return res.json(savedUser);
 
   } catch (err) {
     return next(err);
@@ -70,39 +79,24 @@ exports.createUser = async(req, res, next) => {
 };
 
 //login user...
-exports.loginUser = (req, res, next) => {
-  return passport.authenticate('local', async (err, user) => {
-    try {
-      if(err){
-        return next(err)
-      }
+exports.loginUser = async (req, res, next) => {
+  try {
 
-      if(!user) {
-        return res.json({ message: 'Incorrect email or password !'});
-      }
+    //find user by email
+    const user = await User.findOne({email: req.body.email});
 
-      req.logIn(user, async (err) => {
-        if(err) return next(err);
+    //if user dose not exist - return error
+    if(!user || !user.checkPassword(req.body.password)) return res.json({ message: `Incorrect Email or Password !`});
+  
+    //generate secret token
+    const token = await generateToken(user._id);
 
-        function token(email){
-          const text = email.toString('base64');
-          const key = 'fg1C0Sec77codeac99';
-      
-          return crypto.createHmac('sha512', key)
-            .update(text)
-            .digest('hex')
-        };
+    //save token on Redis db
+    await client.set('secretToket', token);
 
-        const user = await User.findOne({email: req.body.email});
-        const newToken = await token(req.body.email);
-
-        if(user.token !== newToken) return res.json({message: 'Incorrect email or password !'});
-
-        return res.json({message: 'Login is succesful_(Authorized)'});
-      });
-      
-    } catch (error) {
-      return next(error);
-    }
-})(req, res, next);
+    return res.json({message: 'Login is succesfuly done'});
+    
+  } catch (error) {
+    return next(error);
+  }
 };

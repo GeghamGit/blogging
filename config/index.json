@@ -11,6 +11,9 @@
     "user": null,
     "password": null
   },
+  "secretTokenKey": {
+    "key": "fg1C0Sec77codeac99"
+  },
   "smtpServer": {
     "host": "smtp.yandex.ru",
     "from": "gegham.wedoappsllc@yandex.ru",
