@@ -53,10 +53,6 @@ const userSchema = new Schema({
   salt: {
     type: String
   },
-  token: {
-    type: String,
-    unique: true,
-  }
 });
 
 userSchema.virtual('password')

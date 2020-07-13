@@ -11,8 +11,9 @@
     "user": null,
     "password": null
   },
-  "secretTokenKey": {
-    "key": "fg1C0Sec77codeac99"
+  "jwt": {
+    "payload": "a8CdFj-koP8RcdFgF07hJa1cv",
+    "secretKey": "fg1C0-Sec77coPltuYdeAc99"
   },
   "smtpServer": {
     "host": "smtp.yandex.ru",
