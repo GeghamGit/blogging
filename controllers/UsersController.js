@@ -1,31 +1,9 @@
 const User = require('../schema/User');
-const authHelper = require('../helper/authHelper');
 const valid = require('../validate/validate');
 const verifyEmailTemplate = require('../utils/verifyEmailTemplate');
-const client = require('../lib/redisConnect');
-const { v4: uuidv4 } = require('uuid');
-const { payload } = require('../config').jwt;
-// const {saveFile} = require('../lib/saveFile');
+const { updateTokens } = require('../helper/generateTokens')
+// const { saveFile } = require('../lib/saveFile');
 
-//generate tokens for Authorization
-exports.updateTokens = async() => {
-  //create access token
-  const accessToken = await authHelper.generateAccessToken(payload);
-
-  //create refresh token
-  const refreshToken = await authHelper.generateRefreshToken(uuidv4());
-
-  //save tokens on Redis db
-  await client.set('access', accessToken);
-  await client.set('refresh', refreshToken);
-
-  return ({
-    accessToken,
-    refreshToken
-  })
-};
-
-//getting all users...
 exports.getUsers = async(req, res, next) => {
   try{
 
@@ -42,7 +20,6 @@ exports.getUsers = async(req, res, next) => {
   }
 };
 
-//getting user by own id...
 exports.getUserById = async(req, res, next) => {
   try{
 
@@ -53,48 +30,121 @@ exports.getUserById = async(req, res, next) => {
     if(!user) return res.json({message: 'User not found'});
     
     //if user finded - return user
-    return res.json({message: "Finded user", data: user })
+    return res.json({message: "Finded user", data: user });
     
   }catch(err){
     return next(err);
   }
 };
 
-//checking user data and verify own email...
 exports.createUser = async(req, res, next) => {
   try{
 
+    //create property for chechking user data before create
+    const property = 'create';
+
     //check user data
-    const checked = await valid.checkUserInfo(req, res, next);
+    const checked = await valid.checkUserInfo(req, res, next, property);
 
     if(!checked) return res.json(checked)
 
+    //get user data from request
+    const { firstName, surname, lastName, nickName, address, email, password, image } = req.body;
+
+    // //call function for save image with user path
+    // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
+
+    //create user data
+    const newUser = new User({
+      firstName,
+      surname,
+      lastName,
+      nickName,
+      address,
+      email,
+      password,
+      image: imageName
+    });
+
     //get user by email
-    const user = await User.findOne({email: req.body.email})
+    const user = await User.findOne({email})
 
     //if user already exist - return info message
-    if(user) return res.json({message: `User with email ${req.body.email} already exist`});
-
-    //call function for save image with user path
-    // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
+    if(user) return res.json({message: `User with email ${email} already exist`});
   
-    //create user data
-    const newUser = new User(req.body);
-
     //save user in db
     const savedUser = await newUser.save();
+    if(!savedUser) return new Error({ message: 'User are not saved !' });
 
     //call email sender function
-    await verifyEmailTemplate.sendEmail(req, res, next, req.body.email, req.body.nickName);
-
-    return res.json(savedUser);
+    await verifyEmailTemplate.sendEmail(req, res, next, email, nickName);
 
   } catch (err) {
     return next(err);
   }
 };
 
-//login user...
+exports.updateUser = async(req, res, next) => {
+  try{
+
+    //check user data
+    const checked = await valid.checkUserInfo(req, res, next);
+
+    if(!checked) return res.json(checked)
+    console.log(checked)
+
+    const user = await User.findById({_id: req.body.id});
+
+    //if user already exist - return info message
+    if(!user) return res.json({message: 'User not found !'});
+
+    //if user change that fields , change it in user too
+    if(checked.firstName) user.firstName = checked.firstName;
+    if(checked.surname) user.surname = checked.surname;
+    if(checked.lastName) user.lastName = checked.lastName;
+    if(checked.nickName) user.nickName = checked.nickName;
+    if(checked.address) user.address = checked.address;
+    
+    //call function for save image with user path
+    // const imageName = await saveFile(image, imgConfPath = 'user', res, next);
+  
+    //save user in db
+    await user.save();
+
+    return res.json({message: 'User updated'});
+
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.deleteUser = async(req, res, next) => {
+  try{
+
+    //get data from user
+    const { email, password } = req.body;
+
+    //chack user by id
+    const user = await User.findOne({ email })
+
+    //if user are not exist - return error
+    if(!user) return res.json({message: 'User not found-email'});
+
+    //if enter wrong password
+    if(!user.checkPassword(password)) return res.json({ message: `Incorrect Password !`});
+
+    //delete user from db
+    const deletedUser = await user.delete({});
+    if(!deletedUser) return res.json({message: 'User are not deleted'});
+    
+    //if user finded - return user
+    return res.json({message: "User are successfuly deleted"});
+    
+  }catch(err){
+    return next(err);
+  }
+};
+
 exports.loginUser = async (req, res, next) => {
   try {
 
@@ -104,16 +154,16 @@ exports.loginUser = async (req, res, next) => {
     //find user by email
     const user = await User.findOne({email});
 
-    //if user does not exist - return error
+    //if user does not exist or enter wrong fields - return error
     if(!user || !user.checkPassword(password)) return res.json({ message: `Incorrect Email or Password !`});
   
     //generate secret token
-    const token = await this.updateTokens();
+    const token = await updateTokens();
 
     //if token does not creatid - return error
     if(!token) return res.json({message: 'Token does not created !'});
 
-    return res.json({message: 'Login is succesfuly done', token});
+    return res.json({message: 'Login is succesfuly done', token, userId: user._id});
     
   } catch (error) {
     return next(error);

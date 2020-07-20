@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-
 const blogsController = require('../controllers/BlogsController');
+const authUser = require('../middlewares/authUser');
 
 /**
  * @swagger
@@ -24,6 +24,40 @@ router.get('/', blogsController.getAllBlogs);
 
 /**
  * @swagger
+ * /blogs/my-blogs:
+ *  get:
+ *    summary: Get own blogs
+ *    description:
+ *      "Ստանում ենք սեփական բլոգները"
+ *    tags:
+ *      - Blogs
+ *    parameters:
+ *      - name: id
+ *        description: "Սա բլոգի id-ն է"
+ *        in: path
+ *        required: true
+ *        schema:
+ *          type: string
+ *          required:
+ *            - id
+ *          properties:
+ *            author:
+ *              type: string
+ *          example: {
+ *            "author": "user id",
+ *          }
+ *    responses:
+ *      200:
+ *        description: Success response
+ *      404:
+ *        description: Not found
+ *      500:
+ *        description: Server error
+ */
+router.get('/my-blogs', blogsController.getAllMyBlogs);
+
+/**
+ * @swagger
  * /blogs/{id}:
  *  get:
  *    summary: Get blog by id
@@ -40,6 +74,12 @@ router.get('/', blogsController.getAllBlogs);
  *          type: string
  *          required:
  *            - id
+ *          properties:
+ *            id:
+ *              type: string
+ *          example: {
+ *            "id": "blog id",
+ *          }
  *    responses:
  *      200:
  *        description: Success response
@@ -48,7 +88,7 @@ router.get('/', blogsController.getAllBlogs);
  *      500:
  *        description: Server error
  */
-router.get('/:id', blogsController.getBlogById);
+router.get('/:id', authUser, blogsController.getBlogById);
 
 /**
  * @swagger
@@ -67,13 +107,10 @@ router.get('/:id', blogsController.getBlogById);
  *          type: object
  *          required:
  *            - name
- *            - price
  *          properties:
  *            name:
  *              type: string
  *            description:
- *              type: string
- *            author:
  *              type: string
  *          example: {
  *            "name": "Գեղամ",
@@ -92,7 +129,7 @@ router.post('/create', blogsController.createBlog);
 
 /**
  * @swagger
- * /blogs/{id}:
+ * /blogs/update:
  *  put:
  *    summary: Update glog
  *    description:
@@ -112,8 +149,6 @@ router.post('/create', blogsController.createBlog);
  *            name:
  *              type: string
  *            description:
- *              type: string
- *            author:
  *              type: string
  *          example: {
  *            "name": "Գեղամ",

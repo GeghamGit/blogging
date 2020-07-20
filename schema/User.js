@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const crypto = require('crypto');
 const { Schema, model } = require('../lib/dbConnect');
 
@@ -27,14 +28,11 @@ const userSchema = new Schema({
     index: true
   },
   address: {
-    country: { type: String },
-    city: { type: String },
-    address: { type: String }
+    type: String 
   },
   image: {
-    link: { type: String, default: "default.jpg" },
-    x: { type: Number, default: 0 },
-    y: { type: Number, default: 0 }
+    type: String,
+    default: "default.jpg"
   },
   email: {
     type: String,

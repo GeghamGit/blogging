@@ -3,6 +3,7 @@ const User = require('../schema/User');
 const conf = require ('../config');
 const { v4: uuidv4 } = require('uuid');
 
+//create function for  template
 const template = (nickName, link) => {
   return (`
     <!DOCTYPE html>
@@ -114,7 +115,7 @@ const template = (nickName, link) => {
   `)
 };
 
-
+//create propertes for generate link
 let random, host, link;
 
 exports.sendEmail = async (req, res, next, email, nickName) => {
@@ -155,14 +156,19 @@ exports.sendEmail = async (req, res, next, email, nickName) => {
 };
 
 exports.verifyEmail = async(req, res, next) => {
-  try{  
+  try{
+
+    //chechking protocols are equals or not
     if(`${req.protocol}://${req.get('host')}` === `http://${host}`){
       if(req.query.id.split('_')[0] === random){
 
+        //get user email from request
         const email = req.query.id.split('_')[1];
       
+        //find user by email
         const user = await User.updateOne({email}, {$set: {IsEmailVerify: true }});
         
+        //if user is not exist - return error
         if(!user) return res.json({status: false, message: 'You are not registration with this email'});
         
         return res.json({status: true, message: 'Your email is successfuly verifyed'})

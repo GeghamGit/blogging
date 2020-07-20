@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 exports.generateAccessToken = () => {
   return jwt.sign({payload}, secretKey, {
     algorithm: 'HS256',
-    expiresIn: 300
+    expiresIn: 600
   });
 };
 
@@ -13,6 +13,6 @@ exports.generateAccessToken = () => {
 exports.generateRefreshToken = (uuidv4) => {
   return jwt.sign({uuidv4}, secretKey, {
     algorithm: 'HS256',
-    expiresIn: 600
+    expiresIn: 1200
   });
 };

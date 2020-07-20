@@ -1,7 +1,7 @@
 const { secretKey } = require('../config').jwt;
 const jwt = require('jsonwebtoken');
 const client = require('../lib/redisConnect');
-const { updateTokens } = require('../controllers/UsersController');
+const { updateTokens } = require('../helper/generateTokens');
 
 module.exports = async (req, res, next) => {
 

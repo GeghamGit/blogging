@@ -97,7 +97,54 @@ router.post('/create', user.createUser);
 
 /**
  * @swagger
- * /auth/login{id}:
+ * /auth/edit:
+ *  put:
+ *    summary: Edit user profile
+ *    tags:
+ *      - Users
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        required: true
+ *        schema:
+ *          type: object
+ *          properties:
+ *            firstName:
+ *              type: string
+ *            surname:
+ *              type: string
+ *            lastName:
+ *              type: string
+ *            nickName:
+ *              type: string
+ *            address:
+ *              type: string
+ *            email:
+ *              type: string
+ *            password:
+ *              type: string
+ *          example: {
+ *            "firstName": "Գեղամ",
+ *            "surname": "Հարությունյան",
+ *            "lastName": "Թաթոս",
+ *            "nickName": "Գեղամ94",
+ *            "address": "Գյումրի",
+ *            "email": "Your email",
+ *            "password": "Your password"
+ *          }
+ *    responses:
+ *      200:
+ *        description: Success response
+ *      404:
+ *        description: Not found
+ *      500:
+ *        description: Server error
+ */
+router.put('/update', authUser, user.updateUser);
+
+/**
+ * @swagger
+ * /auth/login:
  *  post:
  *    summary: Log in user
  *    tags:
@@ -129,9 +176,38 @@ router.post('/login', user.loginUser);
 
 /**
  * @swagger
+ * /auth/delete:
+ *  delete:
+ *    summary: Log in user
+ *    tags:
+ *      - Users
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        required: true
+ *        schema:
+ *          type: object
+ *          properties:
+ *            password:
+ *              type: string
+ *          example: {
+ *            "password": "Your password"
+ *          }
+ *    responses:
+ *      200:
+ *        description: Success response
+ *      404:
+ *        description: Not found
+ *      500:
+ *        description: Server error
+ */
+router.delete('/delete', authUser, user.deleteUser);
+
+/**
+ * @swagger
  * /auth//email/verify:
  *  post:
- *    summary: Log in user
+ *    summary: Verify user email
  *    tags:
  *      - Users
  *    parameters:
