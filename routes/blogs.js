@@ -20,7 +20,7 @@ const authUser = require('../middlewares/authUser');
  *      500:
  *        description: Server error
  */
-router.get('/', blogsController.getAllBlogs);
+router.get('/', authUser, blogsController.getAllBlogs);
 
 /**
  * @swagger
@@ -54,7 +54,7 @@ router.get('/', blogsController.getAllBlogs);
  *      500:
  *        description: Server error
  */
-router.get('/my-blogs', blogsController.getAllMyBlogs);
+router.get('/my-blogs', authUser, blogsController.getAllMyBlogs);
 
 /**
  * @swagger
@@ -125,7 +125,7 @@ router.get('/:id', authUser, blogsController.getBlogById);
  *      500:
  *        description: Server error
  */
-router.post('/create', blogsController.createBlog);
+router.post('/create', authUser, blogsController.createBlog);
 
 /**
  * @swagger
@@ -163,7 +163,7 @@ router.post('/create', blogsController.createBlog);
  *      500:
  *        description: Server error
  */
-router.put('/:id', blogsController.updateBlog);
+router.put('/:id', authUser, blogsController.updateBlog);
 
 /**
  * @swagger
@@ -204,6 +204,6 @@ router.put('/:id', blogsController.updateBlog);
  *      500:
  *        description: Server error
  */
-router.delete('/:id', blogsController.deleteBlog);
+router.delete('/:id', authUser, blogsController.deleteBlog);
 
 module.exports = router;
