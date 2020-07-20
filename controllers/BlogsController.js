@@ -1,6 +1,6 @@
 const Blog = require('../schema/Blog');
-const BlogStructure = require('../data/BlogStructure');
 const valid = require('../validate/validate');
+const User = require('../schema/User');
 // const { saveFile } = require('../lib/saveFile');
 
 exports.getAllBlogs = async (req, res, next) => {
@@ -10,7 +10,7 @@ exports.getAllBlogs = async (req, res, next) => {
       const blogs = await Blog.find({});
 
       //if blogs are not exist - return error
-      if(!blogs) return next('Blogs are not found');
+      if(!blogs) return res.json({message: 'Blogs are not found'});
       
       return res.json(blogs);
 
@@ -18,6 +18,22 @@ exports.getAllBlogs = async (req, res, next) => {
       return next(err);
     }
 };
+
+exports.getAllMyBlogs = async (req, res, next) => {
+  try{
+
+    //check all blogs
+    const myBlogs = await Blog.find({author: req.body.userId}).populate('author');
+
+    //if blogs are not exist - return error
+    if(!myBlogs) return res.json({message: 'Blogs are not found'});
+
+    return res.json(myBlogs);
+
+  } catch(err) {
+    return next(err)
+  }
+}
 
 exports.getBlogById = async(req, res, next) => {
     try{
@@ -38,14 +54,24 @@ exports.getBlogById = async(req, res, next) => {
 exports.createBlog = async (req, res, next) => {
   try {
     
+    //create property for chechking blog data before create
+    const property = 'create';
+
     //check blog data
-    const checked = await valid.checkBlogInfo(req, res, next);
+    const checked = await valid.checkBlogInfo(req, res, next, property);
 
     //if blog data is incorrect
-    if(!checked.status) return next('Please enter correct information');
+    if(!checked) return res.json(checked);
 
     //get data for new blog
-    const { name, description } = checked;
+    const { name, description, author } = req.body;
+
+    //find user by id
+    const user = await User.findById({_id: author});
+
+    //if user not found - return error
+    if(!user) return res.json({message: 'User not found'});
+
     // const image = req.body.image;
 
     //get image name
@@ -54,16 +80,15 @@ exports.createBlog = async (req, res, next) => {
     //create new blog model
     const blog = new Blog({
       name,
-      description
+      description,
+      author: user._id
       // image: { link: imageName }
     });
 
     //save new blog
-    const resultat = await blog.save();
+    const savedBlog = await blog.save();
 
-    const blogData = new BlogStructure(resultat);
-
-    return res.json(blogData.getBlog());
+    return res.json({message: 'Blog created !', savedBlog});
 
   } catch (err) {
     return next(err);
@@ -72,28 +97,30 @@ exports.createBlog = async (req, res, next) => {
 
 exports.updateBlog = async (req, res, next) => {
   try{
-    //get data for updateing blog
-    const {
-      name, description,
-      image
-    } = req.body;
 
     //check blog data
     const checked = await valid.checkBlogInfo(req, res, next);
 
     //if blog data is incorrect
-    if(!checked.status) return next('Please enter correct information')
+    if(!checked) return next('Please enter correct information')
 
     //get image name
     // const imageName = await saveFile(image, imgConfPath = 'ads', res, next);
 
-    //check user by id
-    const blog = await Blog.updateOne({ _id: req.params.id}, {name, description, image: { link: imageName } });
+    //find blog by id
+    const blog = await Blog.findById({ _id: req.params.id});
     
     //if blog is not exist - return error
     if(!blog) return next("Blog is can not updated");
 
-    return res.json(blog)
+    //if user change that fields , change it in blog too
+    if(checked.name) blog.name = checked.name;
+    if(checked.description) blog.description = checked.description;
+
+    //save changed blog in db
+    await blog.save();
+
+    return res.json({message: 'Blog updated'});
     
   } catch(err){
     return next(err)
