@@ -63,7 +63,7 @@ exports.createUser = async(req, res, next) => {
       address,
       email,
       password,
-      image: imageName
+      // image: imageName
     });
 
     //get user by email

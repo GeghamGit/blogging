@@ -82,7 +82,7 @@ exports.createBlog = async (req, res, next) => {
       name,
       description,
       author: user._id
-      // image: { link: imageName }
+      // image: imageName
     });
 
     //save new blog
