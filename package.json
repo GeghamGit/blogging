@@ -13,7 +13,7 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "debug": "~2.6.9",
-    "express": "~4.16.1",
+    "express": "~4.17.3",
     "helmet": "^3.22.0",
     "http-errors": "^1.7.3",
     "imagemagick": "^0.1.3",
